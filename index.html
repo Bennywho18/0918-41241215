@@ -1,0 +1,161 @@
+<!DOCTYPE html> 
+<html lang="zh-Hant"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>剪刀石頭布遊戲</title> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script> 
+    <style> 
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+            background-color: black; 
+            color: white; 
+        } 
+        .button-container { 
+            display: inline-block; 
+            padding: 10px; 
+            transition: background-color 0.2s ease-in-out; 
+        } 
+        .button-container:hover { 
+            background-color: yellow; /* 滑鼠移上時背景顏色變為黃色 */ 
+        } 
+        .button { 
+            width: 100px; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            background-color: transparent; /* 預設背景透明 */
+        } 
+        .button:hover { 
+            transform: scale(1.1); 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); 
+        } 
+        .scoreboard { 
+            display: flex; 
+            justify-content: center; 
+            margin: 20px 0; 
+        } 
+        .scoreboard div { 
+            margin: 0 20px; 
+            font-size: 24px; 
+        } 
+        .result { 
+            font-size: 24px; 
+            margin-top: 20px; 
+        } 
+        .win { color: red; } 
+        .lose { color: green; } 
+        .draw { color: yellow; } 
+    </style> 
+</head> 
+<body> 
+    <h1>剪刀石頭布遊戲</h1> 
+
+    <!-- 計分板 -->
+    <div class="scoreboard">
+        <div id="playerScore">玩家分數: 0</div>
+        <div id="computerScore">電腦分數: 0</div>
+    </div>
+
+    <div class="button-container">
+        <img src="cut.png" alt="剪刀" class="button" onclick="play('剪刀')">
+    </div>
+    
+    <div class="button-container">
+        <img src="rock.png" alt="石頭" class="button" onclick="play('石頭')">
+    </div>
+    
+    <div class="button-container">
+        <img src="boo.png" alt="布" class="button" onclick="play('布')">
+    </div>
+ 
+    <div class="result" id="result"></div> 
+ 
+    <script> 
+        let userScore = 0; 
+        let computerScore = 0; 
+ 
+        // 使用AudioContext生成音效 
+        function playSound(frequency, type) { 
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)(); 
+            const oscillator = audioContext.createOscillator(); 
+            const gainNode = audioContext.createGain(); 
+ 
+            oscillator.type = type; // 音效類型 (sine, square, etc.) 
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // 設定頻率 
+            oscillator.connect(gainNode); 
+            gainNode.connect(audioContext.destination); 
+ 
+            oscillator.start(); 
+            oscillator.stop(audioContext.currentTime + 0.2); // 播放 0.2 秒 
+        } 
+ 
+        function play(userChoice) { 
+            const choices = ['剪刀', '石頭', '布']; 
+            const computerChoice = choices[Math.floor(Math.random() * 3)]; 
+            let resultText = ''; 
+ 
+            if (userChoice === computerChoice) { 
+                resultText = '平手'; 
+                document.getElementById('result').className = 'result draw'; 
+                playSound(440, 'sine'); // 平手播放音效 
+            } else if ( 
+                (userChoice === '剪刀' && computerChoice === '布') || 
+                (userChoice === '石頭' && computerChoice === '剪刀') || 
+                (userChoice === '布' && computerChoice === '石頭') 
+            ) { 
+                resultText = '你贏了'; 
+                userScore++; 
+                document.getElementById('result').className = 'result win'; 
+                playSound(880, 'square'); // 贏的音效 
+            } else { 
+                resultText = '你輸了'; 
+                computerScore++; 
+                document.getElementById('result').className = 'result lose'; 
+                playSound(220, 'triangle'); // 輸的音效 
+            } 
+ 
+            // 更新結果顯示
+            document.getElementById('result').innerText = resultText + ' (電腦選擇: ' + computerChoice + ')'; 
+
+            // 更新分數
+            document.getElementById('playerScore').innerText = '玩家分數: ' + userScore;
+            document.getElementById('computerScore').innerText = '電腦分數: ' + computerScore;
+
+            checkWinner(); 
+        } 
+ 
+        function checkWinner() { 
+            if (userScore === 3) { 
+                Swal.fire({ 
+                    title: '恭喜你！', 
+                    text: '你是贏家！', 
+                    icon: 'success', 
+                    confirmButtonText: '重新開始' 
+                }).then(() => { 
+                    resetGame(); 
+                }); 
+            } else if (computerScore === 3) { 
+                Swal.fire({ 
+                    title: '很遺憾！', 
+                    text: '電腦是贏家！', 
+                    icon: 'error', 
+                    confirmButtonText: '重新開始' 
+                }).then(() => { 
+                    resetGame(); 
+                }); 
+            } 
+        } 
+ 
+        function resetGame() { 
+            userScore = 0; 
+            computerScore = 0; 
+            document.getElementById('result').innerText = ''; 
+            document.getElementById('playerScore').innerText = '玩家分數: 0'; 
+            document.getElementById('computerScore').innerText = '電腦分數: 0'; 
+        } 
+    </script> 
+</body> 
+</html>
